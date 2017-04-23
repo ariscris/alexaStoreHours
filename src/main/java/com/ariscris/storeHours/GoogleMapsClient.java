@@ -73,6 +73,7 @@ public class GoogleMapsClient {
             return null;
         }
 
+        //https://maps.googleapis.com/maps/api/place/details/json?key=AIzaSyBp1rZSe6Vq0bKIurb0v8Tiriikf5fjuM8&placeid=ChIJV3_Zf1D_wokRbn-97lxGQ7A
         PlaceDetails result = PlacesApi.placeDetails(geoApicontext, placeId).await();
         return result.openingHours;
 
@@ -80,22 +81,26 @@ public class GoogleMapsClient {
 
     private static String getTimeSpeech(LocalTime time) {
         String speech = "";
-        boolean isMorning;
-        if (time.getHourOfDay() <= 12) {
-            speech += " " + String.valueOf(time.getHourOfDay());
-            isMorning = true;
+        boolean isAM = false;
+        boolean isPM = false;
+        int hourOfDay = time.getHourOfDay();
+        if (hourOfDay == 0) {
+            speech += " midnight";
+        } else if (hourOfDay <= 11) {
+            speech += " " + String.valueOf(hourOfDay);
+            isAM = true;
         } else {
-            speech += " " + String.valueOf(time.getHourOfDay() - 12);
-            isMorning = false;
+            speech += " " + String.valueOf(hourOfDay - 12);
+            isPM = true;
         }
 
         if (time.getMinuteOfHour() != 0) {
             speech += " " + time.getMinuteOfHour();
         }
 
-        if (isMorning) {
+        if (isAM) {
             speech += " AM";
-        } else {
+        } else if (isPM) {
             speech += " PM";
         }
         return speech;
