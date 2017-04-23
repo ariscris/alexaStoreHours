@@ -95,7 +95,7 @@ public class StoreHoursSpeechlet implements Speechlet {
         String speechText;
 
         try {
-            speechText = GoogleMapsProxy.getOpeningTime(place);
+            speechText = GoogleMapsClient.getOpeningTime(place, "07013");
         } catch (Exception e) {
             speechText = "sorry, I don't know";
         }
