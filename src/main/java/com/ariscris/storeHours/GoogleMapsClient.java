@@ -35,33 +35,38 @@ public class GoogleMapsClient {
     }
 
     private static OpeningHours.Period getOpeningHours(String place, String zipCode) throws Exception {
-        GeoApiContext context = new GeoApiContext().setApiKey(API_KEY);
-        PlacesSearchResult placesSearchResult = searchForPlace(context, place, zipCode);
+        PlacesSearchResult placesSearchResult = searchForPlace(place, zipCode);
         if (placesSearchResult != null && placesSearchResult.openingHours != null && placesSearchResult.openingHours.periods.length > 0) {
-            return placesSearchResult.openingHours.periods[0];
+            OpeningHours.Period openingHours = placesSearchResult.openingHours.periods[0];
+            log.info("openingHours = {}", openingHours);
+            return openingHours;
         } else {
             return null;
         }
     }
 
-    private static PlacesSearchResult searchForPlace(GeoApiContext context, String keyword, String zipCode) throws Exception {
+    private static PlacesSearchResult searchForPlace(String keyword, String zipCode) throws Exception {
         log.info("searchForPlace keyword={}, zipCode={}", keyword, zipCode);
 
         //https://maps.googleapis.com/maps/api/geocode/json?address=07013&key=AIzaSyBp1rZSe6Vq0bKIurb0v8Tiriikf5fjuM8
-        GeocodingResult[] results = GeocodingApi.geocode(context, zipCode).await();
+        GeoApiContext geoApicontext = new GeoApiContext().setApiKey(API_KEY);
+        GeocodingResult[] results = GeocodingApi.geocode(geoApicontext, zipCode).await();
         LatLng location;
         if (results.length > 0) {
             location = results[0].geometry.location;
+            log.info("latitude={}, longitude={}", location.lat, location.lng);
         } else {
             log.warn("geocoding failed. Falling back to " + DEFAULT_ZIPCODE);
-            results = GeocodingApi.geocode(context, DEFAULT_ZIPCODE).await();
+            results = GeocodingApi.geocode(geoApicontext, DEFAULT_ZIPCODE).await();
             location = results[0].geometry.location;
         }
 
-        log.info("latitude={}, longitude={}", location.lat, location.lng);
-        PlacesSearchResponse response  = PlacesApi.nearbySearchQuery(context, location).keyword(keyword).await();
-        log.info("searchForPlace found {} results ", results.length);
+        //https://maps.googleapis.com/maps/api/place/textsearch/xml?query=target&location=40.8663719,-74.1768412&key=AIzaSyBp1rZSe6Vq0bKIurb0v8Tiriikf5fjuM8
+        PlacesSearchResponse response  = PlacesApi.textSearchQuery(geoApicontext, keyword).await(); //.location(location).await();
+        log.info("PlacesApi.textSearchQuery found {} results ", response.results.length);
         if (results.length > 0) {
+            PlacesSearchResult result = response.results[0];
+            log.info("PlacesApi.textSearchQuery found {} at {} ", result.name, result.formattedAddress);
             return response.results[0];
         } else {
             return null;
