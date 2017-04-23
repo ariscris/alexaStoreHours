@@ -95,9 +95,10 @@ public class StoreHoursSpeechlet implements Speechlet {
         String speechText;
 
         try {
+            // TODO: get device address
             speechText = GoogleMapsClient.getOpeningTime(place, "07013");
         } catch (Exception e) {
-            speechText = "sorry, I don't know";
+            speechText = "Sorry, I don't know";
         }
 
         // Create the Simple card content.
