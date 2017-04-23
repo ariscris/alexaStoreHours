@@ -16,7 +16,7 @@ public class GoogleMapsClient {
 
     public static String getOpeningTime(String place, String zipCode) throws Exception {
         log.info("getOpeningTime place={}", place);
-        OpeningHours.Period openingPeriod = getOpeningHours(place, zipCode);
+        OpeningHours.Period openingPeriod = getOpeningPeriod(place, zipCode);
         if (openingPeriod != null) {
             String openingTime = getTimeSpeech(openingPeriod.open.time);
             log.info("getOpeningTime place={}, openingTime={}", place, openingTime);
@@ -28,24 +28,25 @@ public class GoogleMapsClient {
 
     public static String getClosingTime(String place, String zipCode) throws Exception {
         log.info("getClosingTime place={}, zipCode={}", place, zipCode);
-        OpeningHours.Period openingPeriod = getOpeningHours(place, zipCode);
+        OpeningHours.Period openingPeriod = getOpeningPeriod(place, zipCode);
         String openingTime =  getTimeSpeech(openingPeriod.close.time);
         log.info("getClosingTime place={}, openingTime={}", place, openingTime);
         return openingTime;
     }
 
-    private static OpeningHours.Period getOpeningHours(String place, String zipCode) throws Exception {
-        PlacesSearchResult placesSearchResult = searchForPlace(place, zipCode);
-        if (placesSearchResult != null && placesSearchResult.openingHours != null && placesSearchResult.openingHours.periods.length > 0) {
-            OpeningHours.Period openingHours = placesSearchResult.openingHours.periods[0];
-            log.info("openingHours = {}", openingHours);
-            return openingHours;
+    private static OpeningHours.Period getOpeningPeriod(String place, String zipCode) throws Exception {
+        OpeningHours openingHours = getOpeningHours(place, zipCode);
+        if (openingHours != null && openingHours.periods.length > 0) {
+            OpeningHours.Period period = openingHours.periods[0];
+            log.info("openingHours.period = {}", period);
+            return period;
         } else {
+            log.warn("couldn't get opening hours for place={}", place);
             return null;
         }
     }
 
-    private static PlacesSearchResult searchForPlace(String keyword, String zipCode) throws Exception {
+    private static OpeningHours getOpeningHours(String keyword, String zipCode) throws Exception {
         log.info("searchForPlace keyword={}, zipCode={}", keyword, zipCode);
 
         //https://maps.googleapis.com/maps/api/geocode/json?address=07013&key=AIzaSyBp1rZSe6Vq0bKIurb0v8Tiriikf5fjuM8
@@ -61,16 +62,21 @@ public class GoogleMapsClient {
             location = results[0].geometry.location;
         }
 
+        String placeId = null;
         //https://maps.googleapis.com/maps/api/place/textsearch/xml?query=target&location=40.8663719,-74.1768412&key=AIzaSyBp1rZSe6Vq0bKIurb0v8Tiriikf5fjuM8
         PlacesSearchResponse response  = PlacesApi.textSearchQuery(geoApicontext, keyword).await(); //.location(location).await();
         log.info("PlacesApi.textSearchQuery found {} results ", response.results.length);
         if (results.length > 0) {
             PlacesSearchResult result = response.results[0];
             log.info("PlacesApi.textSearchQuery found {} at {} ", result.name, result.formattedAddress);
-            return response.results[0];
+            placeId = response.results[0].placeId;
         } else {
             return null;
         }
+
+        PlaceDetails result = PlacesApi.placeDetails(geoApicontext, placeId).await();
+        return result.openingHours;
+
     }
 
     private static String getTimeSpeech(LocalTime time) {
