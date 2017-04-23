@@ -43,9 +43,19 @@ public class StoreHoursSpeechlet implements Speechlet {
 
         Intent intent = request.getIntent();
         String intentName = (intent != null) ? intent.getName() : null;
+        String place;
+
+        if (intent.getSlot("place") != null) {
+            place = intent.getSlot("place").getValue();
+        } else {
+            log.error("Couldn't figure out the place, will use Target.");
+            place = "Target";
+        }
 
         if ("OpeningHours".equals(intentName)) {
-            return getOpeningHours("Target"); //intent.getSlot("place").getValue());
+            return getHoursSpeech(true, place);
+        } else if ("ClosingHours".equals(intentName)) {
+            return getHoursSpeech(false, place);
         } else if ("AMAZON.HelpIntent".equals(intentName)) {
             return getHelpResponse();
         } else {
@@ -90,13 +100,17 @@ public class StoreHoursSpeechlet implements Speechlet {
      *
      * @return SpeechletResponse spoken and visual response for the given intent
      */
-    private SpeechletResponse getOpeningHours(String place) {
+    private SpeechletResponse getHoursSpeech(boolean isOpening, String place) {
 
         String speechText;
-
+        String zipCode = "07013"; //TODO: get device address
         try {
-            // TODO: get device address
-            speechText = GoogleMapsClient.getOpeningTime(place, "07013");
+            //TODO:  move speech logic out
+            if (isOpening) {
+                speechText = GoogleMapsClient.getOpeningTime(place, zipCode);
+            } else {
+                speechText = GoogleMapsClient.getClosingTime(place, zipCode);
+            }
         } catch (Exception e) {
             speechText = "Sorry, I don't know";
         }

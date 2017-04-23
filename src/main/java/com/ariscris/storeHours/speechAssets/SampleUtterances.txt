@@ -1,2 +1,5 @@
 OpeningHours what time does {place} open
 OpeningHours when does {place} open
+
+ClosingHours what time does {place} close
+ClosingHours when does {place} close

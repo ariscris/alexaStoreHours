@@ -38,7 +38,6 @@ public class GoogleMapsClient {
         OpeningHours openingHours = getOpeningHours(place, zipCode);
         if (openingHours != null && openingHours.periods.length > 0) {
             OpeningHours.Period period = openingHours.periods[0];
-            log.info("openingHours.period = {}", period);
             return period;
         } else {
             log.warn("couldn't get opening hours for place={}", place);
@@ -64,7 +63,7 @@ public class GoogleMapsClient {
 
         String placeId = null;
         //https://maps.googleapis.com/maps/api/place/textsearch/xml?query=target&location=40.8663719,-74.1768412&key=AIzaSyBp1rZSe6Vq0bKIurb0v8Tiriikf5fjuM8
-        PlacesSearchResponse response  = PlacesApi.textSearchQuery(geoApicontext, keyword).await(); //.location(location).await();
+        PlacesSearchResponse response  = PlacesApi.textSearchQuery(geoApicontext, keyword).location(location).radius(30).await();
         log.info("PlacesApi.textSearchQuery found {} results ", response.results.length);
         if (results.length > 0) {
             PlacesSearchResult result = response.results[0];
