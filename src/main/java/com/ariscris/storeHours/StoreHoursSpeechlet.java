@@ -45,7 +45,7 @@ public class StoreHoursSpeechlet implements Speechlet {
         String intentName = (intent != null) ? intent.getName() : null;
 
         if ("OpeningHours".equals(intentName)) {
-            return getOpeningHours();
+            return getOpeningHours("Target"); //intent.getSlot("place").getValue());
         } else if ("AMAZON.HelpIntent".equals(intentName)) {
             return getHelpResponse();
         } else {
@@ -90,8 +90,15 @@ public class StoreHoursSpeechlet implements Speechlet {
      *
      * @return SpeechletResponse spoken and visual response for the given intent
      */
-    private SpeechletResponse getOpeningHours() {
-        String speechText = "9 AM";
+    private SpeechletResponse getOpeningHours(String place) {
+
+        String speechText;
+
+        try {
+            speechText = GoogleMapsProxy.getOpeningTime(place);
+        } catch (Exception e) {
+            speechText = "sorry, I don't know";
+        }
 
         // Create the Simple card content.
         SimpleCard card = new SimpleCard();
