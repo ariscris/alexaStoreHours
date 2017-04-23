@@ -1,0 +1,26 @@
+{
+  "intents": [
+    {
+      "intent": "OpeningHours",
+      "slots": [
+        {
+          "name": "place",
+          "type": "AMAZON.LocalBusiness"
+        }
+      ]
+    },
+    {
+      "intent": "ClosingHours",
+      "slots": [
+        {
+          "name": "place",
+          "type": "AMAZON.LocalBusiness"
+        }
+      ]
+    },
+    {
+      "intent": "AMAZON.HelpIntent"
+    }
+  ]
+}
+
